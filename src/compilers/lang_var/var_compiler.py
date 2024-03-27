@@ -28,7 +28,7 @@ from common.wasm import (
     WasmExportFunc,
     WasmInstrVarLocal,
     WasmInstrNumBinOp,
-    WasmInstrVarDef,
+    WasmValtype
 )
 
 import lang_var.var_tychecker as var_tychecker
@@ -44,18 +44,18 @@ def compileModule(m: mod, cfg: CompilerConfig) -> WasmModule:
     vars = var_tychecker.tycheckModule(m)
 
     # Initialze instruction list
-    wasm_instr: list[WasmInstr] = []
+    locals: list[tuple[WasmId, WasmValtype]] = []
 
     # Define local variables
     for var in vars:
-        wasm_instr.append(WasmInstrVarDef(WasmId(f"${var.name}"), "i64"))
+        locals.append((WasmId(f"${var.name}"), "i64"))
 
     # Compile module statements
-    wasm_instr.extend(compileStmts(m.stmts))
+    wasm_instr: list[WasmInstr] = compileStmts(m.stmts)
 
     # Create main function
     main = WasmFunc(
-        id=WasmId("$main"), params=[], result=None, locals=[], instrs=wasm_instr
+        id=WasmId("$main"), params=[], result=None, locals=locals, instrs=wasm_instr
     )
 
     # Create compiled module

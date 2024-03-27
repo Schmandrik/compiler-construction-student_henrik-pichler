@@ -203,17 +203,6 @@ class WasmInstrCallIndirect:
         if self.result:
             tys.append(mkNamedSeq('result', SExpId(self.result)))
         return mkNamedSeq('call_indirect', *tys)
-
-@dataclass(frozen=True)
-class WasmInstrVarDef:
-    """
-    Defines a local variable
-    """
-    id: WasmId
-    ty: WasmValtype
-    def render(self) -> SExp:
-        seq = mkSeq(SExpId("local"), self.id.render(), SExpId(self.ty))
-        return seq
     
 @dataclass(frozen=True)
 class WasmInstrVarLocal:
@@ -308,7 +297,7 @@ class WasmInstrTrap:
 type WasmInstr = WasmInstrConst | WasmInstrNumBinOp | WasmInstrIntRelOp | WasmInstrConvOp \
                | WasmInstrCall | WasmInstrCallIndirect | WasmInstrVarLocal | WasmInstrVarGlobal \
                | WasmInstrBranch | WasmInstrIf | WasmInstrLoop | WasmInstrBlock | WasmInstrMem \
-               | WasmInstrComment | WasmInstrTrap | WasmInstrDrop | WasmInstrVarDef
+               | WasmInstrComment | WasmInstrTrap | WasmInstrDrop 
 
 # instructions used for loop and for compiling to assembly
 type WasmInstrL = WasmInstrConst | WasmInstrNumBinOp | WasmInstrIntRelOp \
