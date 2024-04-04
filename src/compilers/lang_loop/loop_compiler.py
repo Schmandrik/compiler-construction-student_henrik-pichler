@@ -103,7 +103,6 @@ def compileExp(exp: exp) -> list[WasmInstr]:
             wasm_instr.extend(compileCall(exp))
                 
         case UnOp(op, arg):
-            print(op, arg)
             match op:
                 case USub():
                     comp_arg = compileExp(arg)
@@ -117,9 +116,10 @@ def compileExp(exp: exp) -> list[WasmInstr]:
                     wasm_instr.append(WasmInstrIntRelOp("i32", "eq"))
                     
         case BinOp(left, op, right):
-            wasm_instr.extend(compileExp(left))
+            left_exp = compileExp(left)
+            wasm_instr.extend(left_exp)
             wasm_instr.extend(compileExp(right))
-            wasm_instr.append(compileBinOp(op, tyOfExp(left)))
+            wasm_instr.append(compileBinOp(op, tyOfExp(left), left_exp[0]))
         
         case BoolConst(v):
             wasm_instr.append(WasmInstrConst("i32", int(v)))
@@ -127,7 +127,7 @@ def compileExp(exp: exp) -> list[WasmInstr]:
     return wasm_instr
 
 
-def compileBinOp(op: binaryop, ty: ty) -> WasmInstrNumBinOp | WasmInstrIntRelOp:
+def compileBinOp(op: binaryop, ty: ty, left_exp: WasmInstr) -> WasmInstrNumBinOp | WasmInstrIntRelOp:
     """
     Function to compile Binary Operator
     """
