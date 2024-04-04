@@ -165,7 +165,7 @@ class WasmInstrNumBinOp:
     Binary operators on numbers, e.g. i32.add
     """
     ty: WasmValtype
-    op: Literal['add', 'sub', 'mul', 'shr_u', 'shl', 'xor', 'and', 'or']
+    op: Literal['add', 'sub', 'mul', 'shr_u', 'shl', 'xor']
     def render(self) -> SExp:
         return SExpId(f'{self.ty}.{self.op}')
 

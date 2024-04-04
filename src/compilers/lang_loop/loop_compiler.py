@@ -105,11 +105,13 @@ def compileExp(exp: exp) -> list[WasmInstr]:
         case UnOp(op, arg):
             match op:
                 case USub():
+                    # subtract from zero
                     comp_arg = compileExp(arg)
                     wasm_instr.append(WasmInstrConst("i64", 0))
                     wasm_instr.extend(comp_arg)
-                    wasm_instr.append(compileBinOp(Sub(), Int()))
+                    wasm_instr.append(WasmInstrNumBinOp("i64", "sub"))
                 case Not():
+                    # compare to zero
                     comp_arg = compileExp(arg)
                     wasm_instr.append(WasmInstrConst("i32", 0))
                     wasm_instr.extend(comp_arg)
@@ -117,46 +119,61 @@ def compileExp(exp: exp) -> list[WasmInstr]:
                     
         case BinOp(left, op, right):
             left_exp = compileExp(left)
-            wasm_instr.extend(left_exp)
-            wasm_instr.extend(compileExp(right))
-            wasm_instr.append(compileBinOp(op, tyOfExp(left), left_exp[0]))
+            right_exp = compileExp(right)
+            wasm_instr.extend(compileBinOp(op, tyOfExp(left), left_exp, right_exp))
         
         case BoolConst(v):
             wasm_instr.append(WasmInstrConst("i32", int(v)))
             
     return wasm_instr
+ 
 
-
-def compileBinOp(op: binaryop, ty: ty, left_exp: WasmInstr) -> WasmInstrNumBinOp | WasmInstrIntRelOp:
+def compileBinOp(op: binaryop, ty: ty, left_exp: list[WasmInstr], right_exp: list[WasmInstr]) -> list[WasmInstr]:
     """
     Function to compile Binary Operator
     """
     result_type = "i64" if isinstance(ty, Int) else "i32"
+    instr_list: list[WasmInstr] = []
+    instr_list.extend(left_exp)
     match op:
         case Add():
-            return WasmInstrNumBinOp(result_type, "add")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrNumBinOp(result_type, "add"))
         case Sub():
-            return WasmInstrNumBinOp(result_type, "sub")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrNumBinOp(result_type, "sub"))
         case Mul():
-            return WasmInstrNumBinOp(result_type, "mul")
-        case And():
-            return WasmInstrNumBinOp(result_type, "and")
-        case Or():
-            return WasmInstrNumBinOp(result_type, "or")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrNumBinOp(result_type, "mul"))
         case Less():
-            return WasmInstrIntRelOp(result_type, "lt_s")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrIntRelOp(result_type, "lt_s"))
         case Greater():
-            return WasmInstrIntRelOp(result_type, "gt_s")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrIntRelOp(result_type, "gt_s"))
         case LessEq():
-            return WasmInstrIntRelOp(result_type, "le_s")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrIntRelOp(result_type, "le_s"))
         case GreaterEq():
-            return WasmInstrIntRelOp(result_type, "ge_s")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrIntRelOp(result_type, "ge_s"))
         case Eq():
-            return WasmInstrIntRelOp(result_type, "eq")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrIntRelOp(result_type, "eq"))
         case NotEq():
-            return WasmInstrIntRelOp(result_type, "ne")
+            instr_list.extend(right_exp)
+            instr_list.append(WasmInstrIntRelOp(result_type, "ne"))
+        case And():
+            instr_list.append(WasmInstrIf("i32", right_exp, [WasmInstrConst("i32", 0)]))
+        case Or():
+            instr_list.append(WasmInstrIf("i32", [WasmInstrConst("i32", 1)], right_exp))
+            
+    return instr_list
         
 def tyOfExp(e: exp) -> ty:
+    """
+    Function to return the type of an expression
+    """
     match e.ty:
         case NotVoid():
             return e.ty.ty
@@ -164,10 +181,14 @@ def tyOfExp(e: exp) -> ty:
             raise AttributeError(f"Type of expression {e} should be NotVoid() but is {e.ty}")
         
 def compileCall(exp: Call) -> list[WasmInstr]:
+    """
+    Function to compile a call
+    """
     instr: list[WasmInstr] = []
     for arg in exp.args:
                 instr.extend(compileExp(arg))
     if exp.name.name == "print":
+        # check if print must be int or bool
         print_type = "i64" if isinstance(tyOfExp(exp.args[0]), Int) else "i32"
         instr.append(WasmInstrCall(WasmId(f"$print_{print_type}")))
     else:
@@ -176,6 +197,9 @@ def compileCall(exp: Call) -> list[WasmInstr]:
     return instr
 
 def compileLoopBody(cond: exp, body: list[stmt]) -> list[WasmInstr]:
+    """
+    Function to compile loop body
+    """
     body_instr: list[WasmInstr] = []
     body_instr.extend(compileExp(cond))
     body_instr.append(WasmInstrIf(None, [], [WasmInstrBranch(WasmId("$loop_0_exit"), False)]))
