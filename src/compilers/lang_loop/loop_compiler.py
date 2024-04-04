@@ -81,7 +81,6 @@ def compileStmts(stmts: list[stmt]) -> list[WasmInstr]:
                 loop_body = compileLoopBody(cond, body)
                 loop: list[WasmInstr] = [WasmInstrLoop(WasmId("$loop_0_start"), loop_body)]
                 wasm_instr.append(WasmInstrBlock(WasmId("$loop_0_exit"), None, loop))
-            
 
     return wasm_instr
 
