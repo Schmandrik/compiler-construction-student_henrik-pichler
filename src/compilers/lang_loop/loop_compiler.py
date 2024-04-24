@@ -18,7 +18,6 @@ from common.wasm import (WasmInstr, WasmModule, WasmFuncTable,
 import lang_loop.loop_tychecker as loop_tychecker
 from common.compilerSupport import wasmImports, CompilerConfig
 
-
 def compileModule(m: mod, cfg: CompilerConfig) -> WasmModule:
     """
     Function to compile the lang_var module
