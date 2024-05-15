@@ -1,0 +1,33 @@
+%import common (NEWLINE, WS_INLINE, SH_COMMENT, CNAME, INT)
+%ignore WS_INLINE
+%ignore SH_COMMENT
+
+LPAR: "("
+RPAR: ")"
+
+paren_exp:  LPAR exp RPAR  -> paren_exp
+
+func_call_content: LPAR (exp ("," exp)*)? RPAR -> func_call_content
+
+func_call: CNAME  func_call_content -> func_call
+
+exp_2: INT             -> int_exp
+     | "-" exp_2       -> neg_exp
+     | paren_exp       -> paren_exp
+     | CNAME           -> assign_name
+     | func_call             -> func_call_exp
+
+exp_1: exp_1 "*" exp_2 -> mul_exp
+     | exp_2           -> exp_2
+
+exp: exp "+" exp_1    -> add_exp
+   | exp "-" exp_1    -> sub_exp
+   | exp_1            -> exp_1
+
+stmt: CNAME "=" exp         -> assign_exp
+    | exp                   -> exp
+    
+
+lvar: 
+     | NEWLINE* (stmt NEWLINE)+  -> stmt
+

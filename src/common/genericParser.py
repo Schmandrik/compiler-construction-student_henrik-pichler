@@ -213,6 +213,9 @@ def parseWithOwnParser(filename: str, args: ParserArgs, astMod: Any,
     print(ownAst)
     pyAst = parseFile(filename, astMod)
     if ownAst == pyAst:
+        print("Expected AST: ", pyAst)
         print('AST from owner parser matches the AST obtained via the python parser')
     else:
+        print("Actual   AST: ", ownAst)
+        print("Expected AST: ", pyAst)
         print('ERROR: mismatch between AST from owner parser and AST from python parser')
