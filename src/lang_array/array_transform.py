@@ -114,12 +114,12 @@ def transStmt(s: stmt, ctx: Ctx) -> list[atom.stmt]:
             return mkAssigns(tmps) + [atom.Assign(x, a)]
         case IfStmt(cond, thenBody, elseBody):
             (a, tmps1) = transExp(cond, False, ctx)
-            stmts1 = transStmts(thenBody, ctx)
-            stmts2 = transStmts(elseBody, ctx)
+            stmts1, _ = transStmts(thenBody, ctx)
+            stmts2, _ = transStmts(elseBody, ctx)
             return mkAssigns(tmps1) + [atom.IfStmt(a, stmts1, stmts2)]
         case WhileStmt(cond, body):
             (a, tmps1) = transExp(cond, False, ctx)
-            stmts = transStmts(body, ctx)
+            stmts, _ = transStmts(body, ctx)
             return mkAssigns(tmps1) + [atom.WhileStmt(a, stmts)]
         case SubscriptAssign(leftExp, indexExp, rightExp):
             (l, tmps1) = transExpAtomic(leftExp, ctx)
@@ -127,7 +127,7 @@ def transStmt(s: stmt, ctx: Ctx) -> list[atom.stmt]:
             (r, tmps3) = transExp(rightExp, False, ctx)
             return mkAssigns(tmps1 + tmps2 + tmps3) + [atom.SubscriptAssign(l, i, r)]
 
-def transStmts(stmts: list[stmt], ctx: Ctx) -> list[atom.stmt]:
+def transStmts(stmts: list[stmt], ctx: Ctx) -> tuple[list[atom.stmt], Ctx]:
     """
     Main entry point, transforming a list of statements.
     This function is called from compilers.array_compiler.compileModule.
@@ -135,4 +135,4 @@ def transStmts(stmts: list[stmt], ctx: Ctx) -> list[atom.stmt]:
     result: list[atom.stmt] = []
     for s in stmts:
         result.extend(transStmt(s, ctx))
-    return result
+    return result, ctx
