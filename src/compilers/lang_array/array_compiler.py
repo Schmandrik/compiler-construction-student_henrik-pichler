@@ -275,9 +275,6 @@ def compileInitArray(lenExp: atomExp, elemTy: ty, cfg: CompilerConfig) -> list[W
     length_error: list[WasmInstr] = Errors.outputError(Errors.arraySize)
     length_error.append(wasm_trap)
     
-    
-    
-    
     # Check if array size is greater than 0
     wasm_instr.extend([WasmInstrConst("i64", 0),
                         WasmInstrVarLocal("get", Locals.tmp_i64),
@@ -354,9 +351,9 @@ def compileDynamicInitArray(array_len: atomExp, elem: atomExp) -> list[WasmInstr
                              WasmInstrIntRelOp("i32","lt_u"),
                              WasmInstrIf(None, [], [WasmInstrBranch(WasmId("$loop_exit"), False)]),
                              WasmInstrVarLocal("get", Locals.tmp_i32),
-                             WasmInstrConst("i64" if isinstance(elem, IntConst) else "i32", elem.value) if isinstance(elem, (IntConst, BoolConst)) 
+                             WasmInstrConst("i64" if isinstance(elem, IntConst) else "i32", int(elem.value)) if isinstance(elem, (IntConst, BoolConst)) 
                              else WasmInstrVarLocal("get", WasmId(f"${elem.var.name}")),
-                             WasmInstrMem("i64" if isinstance(elem, (IntConst)) or isinstance(elem.ty, (Int, Bool)) else "i32","store"),
+                             WasmInstrMem("i64" if isinstance(elem, (IntConst)) or isinstance(elem.ty, (Int)) else "i32","store"),
                              WasmInstrVarLocal("get", Locals.tmp_i32),
                              WasmInstrConst("i32", 8 if isinstance(elem, IntConst) else 4), # TODO: might need to check this for variables
                              WasmInstrNumBinOp("i32", "add"),
