@@ -15,6 +15,7 @@ def buildInterfGraph(args: genCompiler.Args) -> asTypes.InterfGraph:
     # We have to import these modules dynamically because they are not present in student code
     liveness = utils.importModuleNotInStudent('compilers.assembly.liveness')
     log.debug(f'Interference graph test, first compiling to TAC')
+    print("Args: ", args)
     tacInstrs = loopToTac(args)
     log.debug(f'TAC:\n{tacPretty.prettyInstrs(tacInstrs)}')
     log.debug(f'Building the control flow graph ...')
